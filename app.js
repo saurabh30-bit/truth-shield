@@ -107,7 +107,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Simulation Logic --- //
 
     const HF_API_URL = "https://api-inference.huggingface.co/models/dima806/ai_vs_real_image_detection";
-    const HF_API_KEY = "YOUR_HUGGINGFACE_API_KEY_HERE"; // Add your key here. Do not commit it to GitHub.
+
+    function getApiKey() {
+        let key = localStorage.getItem('truthshield_hf_key');
+        if (!key) {
+            key = prompt('Enter your Hugging Face API key to enable live analysis.\nGet one free at https://huggingface.co/settings/tokens');
+            if (key) localStorage.setItem('truthshield_hf_key', key.trim());
+        }
+        return key;
+    }
 
     async function startAnalysis() {
         switchSection('processing');
@@ -138,9 +146,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // Read file as ArrayBuffer
             const arrayBuffer = await file.arrayBuffer();
 
+            const apiKey = getApiKey();
+            if (!apiKey) { simulateAnalysis(); return; }
+
             const response = await fetch(HF_API_URL, {
                 headers: { 
-                    Authorization: `Bearer ${HF_API_KEY}`,
+                    Authorization: `Bearer ${apiKey}`,
                     "Content-Type": file.type
                 },
                 method: "POST",
